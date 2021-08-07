@@ -10,6 +10,9 @@ import (
 func launchListener() {
 	ts := timeseries.New()
 	mq := messagequeue.New()
+	mq.Listen(func(data interface {}) interface{} {
+		return data
+	})
 }
 
 func main() {

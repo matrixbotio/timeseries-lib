@@ -1,10 +1,14 @@
 package mq
 
 import (
-	"github.com/streadway/amqp"
-	"os"
-	"net/url"
 	"crypto/tls"
+	"fmt"
+	"net/url"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/streadway/amqp"
 )
 
 func mqConnect() *amqp.Connection {
@@ -38,9 +42,42 @@ func mqConnect() *amqp.Connection {
 }
 
 type MQ struct {
-	//
+	conn *amqp.Connection
 }
 
-func New(){
-	return &MQ{}
+func (mq *MQ) createChannel(i int) {
+	c, err := mq.conn.Channel()
+	for err != nil {
+		fmt.Println("Warning: cannot create RMQ channel " + strconv.Itoa(i) + ". Retry in 3s")
+		time.Sleep(time.Second * 3)
+		c, err = mq.conn.Channel()
+	}
+	queue, declErr := c.QueueDeclare("timeseries", true, false, false, false, nil)
+	if declErr != nil {
+		fmt.Println("Warning: cannot declare timeseries queue: " + declErr.Error() + ". Closing channel " + strconv.Itoa(i))
+		c.Close()
+		return
+	}
+	queue
+}
+
+func (mq *MQ) Listen(cb func(interface{}) interface{}) {
+	countStr := os.Getenv("MQ_CHANNEL_COUNT")
+	count := 10
+	if countStr != "" {
+		converted, err := strconv.Atoi(countStr)
+		if err != nil {
+			count = converted
+		}
+	}
+	for i := 0; i < count; i++ {
+		go mq.createChannel(i)
+	}
+}
+
+func New() *MQ {
+	conn := mqConnect()
+	return &MQ{
+		conn: conn,
+	}
 }
