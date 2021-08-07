@@ -69,7 +69,7 @@ func (mq *MQ) createChannel(i int) {
 	}
 }
 
-func (mq *MQ) Listen(cb func(interface{}) interface{}) {
+func (mq *MQ) Listen(cb func(interface{}) (interface{}, error)) {
 	countStr := os.Getenv("AMQP_CHANNEL_COUNT")
 	count := 10
 	if countStr != "" {
