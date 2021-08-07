@@ -1,18 +1,21 @@
 package ts
 
 import (
-    "github.com/aws/aws-sdk-go/aws"
-    "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/aws/credentials"
-    "github.com/aws/aws-sdk-go/service/timestreamwrite"
-    "github.com/aws/aws-sdk-go/service/timestreamquery"
-	"net/http"
-	"golang.org/x/net/http2"
-	"time"
+	"errors"
 	"net"
+	"net/http"
 	"os"
+	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/timestreamquery"
+	"github.com/aws/aws-sdk-go/service/timestreamwrite"
+	"golang.org/x/net/http2"
 )
 
+// TS - ...
 type TS struct {
 	q *timestreamquery.TimestreamQuery
 	w *timestreamwrite.TimestreamWrite
@@ -21,7 +24,7 @@ type TS struct {
 func createTSSession() (*timestreamquery.TimestreamQuery, *timestreamwrite.TimestreamWrite) {
 	tr := &http.Transport{
 		ResponseHeaderTimeout: 20 * time.Second,
-		Proxy: http.ProxyFromEnvironment,
+		Proxy:                 http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
 			KeepAlive: 30 * time.Second,
 			DualStack: true,
@@ -35,10 +38,10 @@ func createTSSession() (*timestreamquery.TimestreamQuery, *timestreamwrite.Times
 	http2.ConfigureTransport(tr)
 
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_REGION")),
+		Region:      aws.String(os.Getenv("AWS_REGION")),
 		Credentials: credentials.NewStaticCredentials(os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"), ""),
-		MaxRetries: aws.Int(10),
-		HTTPClient: &http.Client{ Transport: tr },
+		MaxRetries:  aws.Int(10),
+		HTTPClient:  &http.Client{Transport: tr},
 	})
 
 	if err != nil {
@@ -48,6 +51,7 @@ func createTSSession() (*timestreamquery.TimestreamQuery, *timestreamwrite.Times
 	return timestreamquery.New(sess), timestreamwrite.New(sess)
 }
 
+// New TS
 func New() *TS {
 	q, w := createTSSession()
 	return &TS{
@@ -56,14 +60,21 @@ func New() *TS {
 	}
 }
 
+// Query - ...
 func (ts *TS) Query(query string) (interface{}, error) {
-	ts.q.Query(&timestreamquery.QueryInput{
+	_, err := ts.q.Query(&timestreamquery.QueryInput{
 		QueryString: &query,
 	})
+	if err != nil {
+		return nil, errors.New("failed to exec ts query: " + err.Error())
+	}
+	return nil, nil // TODO?
 }
 
-type WriteRecord struct{
-	//
+// WriteRecord - TS Record data container
+type WriteRecord struct {
+	MeasureName  string
+	MeasureValue string
 }
 
 func (ts *TS) Write(db, table string, records []*WriteRecord) error {
@@ -72,9 +83,13 @@ func (ts *TS) Write(db, table string, records []*WriteRecord) error {
 		// append values to recordsSlice
 	}
 
-	ts.w.WriteRecords(&timestreamwrite.WriteRecordsInput{
+	_, err := ts.w.WriteRecords(&timestreamwrite.WriteRecordsInput{
 		DatabaseName: &db,
-		TableName: &table,
-		Records: recordsSlice,
+		TableName:    &table,
+		Records:      recordsSlice,
 	})
+	if err != nil {
+		return errors.New("failed to write ts records: " + err.Error())
+	}
+	return nil
 }
