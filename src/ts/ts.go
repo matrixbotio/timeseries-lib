@@ -15,7 +15,7 @@ import (
 	"golang.org/x/net/http2"
 )
 
-// TS - ...
+// TS - TS handler struct
 type TS struct {
 	q *timestreamquery.TimestreamQuery
 	w *timestreamwrite.TimestreamWrite
@@ -51,7 +51,7 @@ func createTSSession() (*timestreamquery.TimestreamQuery, *timestreamwrite.Times
 	return timestreamquery.New(sess), timestreamwrite.New(sess)
 }
 
-// New TS
+// New - create new TS handler
 func New() *TS {
 	q, w := createTSSession()
 	return &TS{
@@ -60,7 +60,7 @@ func New() *TS {
 	}
 }
 
-// Query - ...
+// Query - select ts data
 func (ts *TS) Query(query string) (interface{}, error) {
 	_, err := ts.q.Query(&timestreamquery.QueryInput{
 		QueryString: &query,
@@ -82,12 +82,13 @@ type WriteRecord struct {
 	Version          int64              `json:"version"`
 }
 
-// RecordDimensions ...
+// RecordDimensions - ts record dimensions
 type RecordDimensions struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
 
+// Write ts records
 func (ts *TS) Write(db, table string, records []*WriteRecord) error {
 	recordsSlice := make([]*timestreamwrite.Record, 0)
 	for _, writeRecord := range records {
