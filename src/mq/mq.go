@@ -54,15 +54,23 @@ func (mq *MQ) createChannel(i int) {
 	}
 	queue, declErr := c.QueueDeclare("timeseries", true, false, false, false, nil)
 	if declErr != nil {
-		fmt.Println("Warning: cannot declare timeseries queue: " + declErr.Error() + ". Closing channel " + strconv.Itoa(i))
+		fmt.Println("Warning: cannot declare the queue: " + declErr.Error() + ". Closing channel " + strconv.Itoa(i))
 		c.Close()
 		return
 	}
-	queue
+	msgChan, consumeErr := c.Consume(queue.Name, "", true, false, true, false, nil)
+	if consumeErr != nil {
+		fmt.Println("Warning: cannot consume from queue: " + consumeErr.Error() + ". Closing channel " + strconv.Itoa(i))
+		c.Close()
+		return
+	}
+	for msg := range msgChan {
+		//
+	}
 }
 
 func (mq *MQ) Listen(cb func(interface{}) interface{}) {
-	countStr := os.Getenv("MQ_CHANNEL_COUNT")
+	countStr := os.Getenv("AMQP_CHANNEL_COUNT")
 	count := 10
 	if countStr != "" {
 		converted, err := strconv.Atoi(countStr)
@@ -76,8 +84,7 @@ func (mq *MQ) Listen(cb func(interface{}) interface{}) {
 }
 
 func New() *MQ {
-	conn := mqConnect()
 	return &MQ{
-		conn: conn,
+		conn: mqConnect(),
 	}
 }
