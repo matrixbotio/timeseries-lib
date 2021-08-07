@@ -62,13 +62,13 @@ func New() *TS {
 
 // Query - select ts data
 func (ts *TS) Query(query string) (interface{}, error) {
-	_, err := ts.q.Query(&timestreamquery.QueryInput{
+	tsResult, err := ts.q.Query(&timestreamquery.QueryInput{
 		QueryString: &query,
 	})
 	if err != nil {
 		return nil, errors.New("failed to exec ts query: " + err.Error())
 	}
-	return nil, nil // TODO?
+	return tsResult.Rows, nil
 }
 
 // WriteRecord - TS Record data container
