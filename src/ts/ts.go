@@ -55,3 +55,17 @@ func New() *TS {
 		w: w,
 	}
 }
+
+func (ts *TS) Query(query string) (interface{}, error) {
+	ts.q.Query(&timestreamquery.QueryInput{
+		QueryString: &query,
+	})
+}
+
+func (ts *TS) Write(db, table string, records interface{}) error {
+	ts.w.WriteRecords(&timestreamwrite.WriteRecordsInput{
+		DatabaseName: &db,
+		TableName: &table,
+		Records: []*timestreamwrite.Record{},
+	})
+}
