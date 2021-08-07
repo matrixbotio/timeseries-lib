@@ -73,14 +73,43 @@ func (ts *TS) Query(query string) (interface{}, error) {
 
 // WriteRecord - TS Record data container
 type WriteRecord struct {
-	MeasureName  string
-	MeasureValue string
+	Dimensions       []RecordDimensions `json:"dimensions"`
+	MeasureName      string             `json:"measureName"`
+	MeasureValue     string             `json:"measureValue"`
+	MeasureValueType string             `json:"measureType"` // example: "DOUBLE"
+	Time             string             `json:"time"`
+	TimeUnit         string             `json:"timeUnit"` // example: "MILLISECONDS"
+	Version          int64              `json:"version"`
+}
+
+// RecordDimensions ...
+type RecordDimensions struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 func (ts *TS) Write(db, table string, records []*WriteRecord) error {
 	recordsSlice := make([]*timestreamwrite.Record, 0)
-	for _, x := range records {
+	for _, writeRecord := range records {
+		// create record
+		record := &timestreamwrite.Record{
+			Dimensions:       make([]*timestreamwrite.Dimension, len(writeRecord.Dimensions)),
+			MeasureName:      aws.String(writeRecord.MeasureName),
+			MeasureValue:     aws.String(writeRecord.MeasureValue),
+			MeasureValueType: aws.String(writeRecord.MeasureValueType),
+			Time:             aws.String(writeRecord.Time),
+			TimeUnit:         aws.String(writeRecord.TimeUnit),
+			Version:          aws.Int64(writeRecord.Version),
+		}
+		// add dimensions
+		for _, dimension := range writeRecord.Dimensions {
+			record.Dimensions = append(record.Dimensions, &timestreamwrite.Dimension{
+				Name:  &dimension.Name,
+				Value: &dimension.Value,
+			})
+		}
 		// append values to recordsSlice
+		recordsSlice = append(recordsSlice, record)
 	}
 
 	_, err := ts.w.WriteRecords(&timestreamwrite.WriteRecordsInput{
