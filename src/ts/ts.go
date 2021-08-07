@@ -62,10 +62,19 @@ func (ts *TS) Query(query string) (interface{}, error) {
 	})
 }
 
-func (ts *TS) Write(db, table string, records interface{}) error {
+type WriteRecord struct{
+	//
+}
+
+func (ts *TS) Write(db, table string, records []*WriteRecord) error {
+	recordsSlice := make([]*timestreamwrite.Record, 0)
+	for _, x := range records {
+		// append values to recordsSlice
+	}
+
 	ts.w.WriteRecords(&timestreamwrite.WriteRecordsInput{
 		DatabaseName: &db,
 		TableName: &table,
-		Records: []*timestreamwrite.Record{},
+		Records: recordsSlice,
 	})
 }
