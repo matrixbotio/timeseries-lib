@@ -73,17 +73,17 @@ func (ts *TS) Query(query string) (interface{}, error) {
 
 // WriteRecord - TS Record data container
 type WriteRecord struct {
-	Dimensions       []RecordDimensions `json:"dimensions"`
-	MeasureName      string             `json:"measureName"`
-	MeasureValue     string             `json:"measureValue"`
-	MeasureValueType string             `json:"measureType"` // example: "DOUBLE"
-	Time             string             `json:"time"`
-	TimeUnit         string             `json:"timeUnit"` // example: "MILLISECONDS"
-	Version          int64              `json:"version"`
+	Dimensions       []RecordDimension `json:"dimensions"`
+	MeasureName      string            `json:"measureName"`
+	MeasureValue     string            `json:"measureValue"`
+	MeasureValueType string            `json:"measureType"` // example: "DOUBLE"
+	Time             string            `json:"time"`
+	TimeUnit         string            `json:"timeUnit"` // example: "MILLISECONDS"
+	Version          int64             `json:"version"`
 }
 
-// RecordDimensions - ts record dimensions
-type RecordDimensions struct {
+// RecordDimension - ts record dimension
+type RecordDimension struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
