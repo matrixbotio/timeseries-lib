@@ -2,6 +2,7 @@ package mq
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
@@ -45,7 +46,60 @@ type MQ struct {
 	conn *amqp.Connection
 }
 
-func (mq *MQ) createChannel(i int) {
+func messageProcess(msg amqp.Delivery, c *amqp.Channel, queueName string, cb func(interface{}) (interface{}, error)) {
+	responseRoutingKey, rrkOk := msg.Headers["responseRoutingKey"].(string)
+	needAnswer := msg.CorrelationId != "" && rrkOk && responseRoutingKey != ""
+	var value interface{}
+	err := json.Unmarshal(msg.Body, &value)
+	if err != nil {
+		if needAnswer {
+			c.Publish(queueName + ".response", responseRoutingKey, false, true, amqp.Publishing{
+				CorrelationId: msg.CorrelationId,
+				Body: []byte(err.Error()),
+				Headers: amqp.Table{
+					"code": -1,
+					"name": "ERR_UNKNOWN",
+				},
+			})
+		}
+		return
+	}
+	res, cbErr := cb(value)
+	if needAnswer {
+		if cbErr != nil {
+			c.Publish(queueName + ".response", responseRoutingKey, false, true, amqp.Publishing{
+				CorrelationId: msg.CorrelationId,
+				Body: []byte(cbErr.Error()),
+				Headers: amqp.Table{
+					"code": -1,
+					"name": "ERR_UNKNOWN",
+				},
+			})
+			return
+		}
+		strRes, marshalErr := json.Marshal(res)
+		if marshalErr != nil {
+			c.Publish(queueName + ".response", responseRoutingKey, false, true, amqp.Publishing{
+				CorrelationId: msg.CorrelationId,
+				Body: []byte(marshalErr.Error()),
+				Headers: amqp.Table{
+					"code": -1,
+					"name": "ERR_UNKNOWN",
+				},
+			})
+			return
+		}
+		c.Publish(queueName + ".response", responseRoutingKey, false, true, amqp.Publishing{
+			CorrelationId: msg.CorrelationId,
+			Body: strRes,
+			Headers: amqp.Table{
+				"code": 0,
+			},
+		})
+	}
+}
+
+func (mq *MQ) createChannel(i int, cb func(interface{}) (interface{}, error)) {
 	c, err := mq.conn.Channel()
 	for err != nil {
 		fmt.Println("Warning: cannot create RMQ channel " + strconv.Itoa(i) + ". Retry in 3s")
@@ -65,7 +119,7 @@ func (mq *MQ) createChannel(i int) {
 		return
 	}
 	for msg := range msgChan {
-		//
+		go messageProcess(msg, c, queue.Name, cb)
 	}
 }
 
@@ -79,7 +133,7 @@ func (mq *MQ) Listen(cb func(interface{}) (interface{}, error)) {
 		}
 	}
 	for i := 0; i < count; i++ {
-		go mq.createChannel(i)
+		go mq.createChannel(i, cb)
 	}
 }
 
