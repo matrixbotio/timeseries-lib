@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	constants "github.com/matrixbotio/constants-lib"
 	"github.com/streadway/amqp"
 )
 
@@ -17,11 +18,6 @@ type MQ struct {
 }
 
 type headers = amqp.Table
-
-var baseError = headers{
-	"code": -1,
-	"name": "ERR_UNKNOWN",
-}
 
 func mqConnect() *amqp.Connection {
 	var conn *amqp.Connection
@@ -65,6 +61,14 @@ func publish(c *amqp.Channel, qn, rrk, cid string, body []byte, headers headers)
 	}
 }
 
+func publishErr(c *amqp.Channel, qn, rrk, cid string, err *constants.APIError){
+	headers := headers {
+		"code": err.Code,
+		"name": err.Name,
+	}
+	publish(c, qn, rrk, cid, []byte(err.Message), headers)
+}
+
 func messageProcess(msg amqp.Delivery, c *amqp.Channel, queueName string, cb func(interface{}) (interface{}, error)) {
 	responseRoutingKey, rrkOk := msg.Headers["responseRoutingKey"].(string)
 	needAnswer := msg.CorrelationId != "" && rrkOk && responseRoutingKey != ""
@@ -72,19 +76,19 @@ func messageProcess(msg amqp.Delivery, c *amqp.Channel, queueName string, cb fun
 	err := json.Unmarshal(msg.Body, &value)
 	if err != nil {
 		if needAnswer {
-			publish(c, queueName, responseRoutingKey, msg.CorrelationId, []byte(err.Error()), baseError)
+			publishErr(c, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_PARSE_ERR"))
 		}
 		return
 	}
 	res, cbErr := cb(value)
 	if needAnswer {
 		if cbErr != nil {
-			publish(c, queueName, responseRoutingKey, msg.CorrelationId, []byte(cbErr.Error()), baseError)
+			publishErr(c, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_HANDLE_ERR", cbErr.Error()))
 			return
 		}
 		strRes, marshalErr := json.Marshal(res)
 		if marshalErr != nil {
-			publish(c, queueName, responseRoutingKey, msg.CorrelationId, []byte(marshalErr.Error()), baseError)
+			publishErr(c, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_ENCODE_ERR"))
 			return
 		}
 		publish(c, queueName, responseRoutingKey, msg.CorrelationId, strRes, headers{
