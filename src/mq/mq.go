@@ -12,6 +12,17 @@ import (
 	"github.com/streadway/amqp"
 )
 
+type MQ struct {
+	conn *amqp.Connection
+}
+
+type headers = amqp.Table
+
+var baseError = headers{
+	"code": -1,
+	"name": "ERR_UNKNOWN",
+}
+
 func mqConnect() *amqp.Connection {
 	var conn *amqp.Connection
 	var err error
@@ -42,8 +53,16 @@ func mqConnect() *amqp.Connection {
 	return conn
 }
 
-type MQ struct {
-	conn *amqp.Connection
+func publish(c *amqp.Channel, qn, rrk, cid string, body []byte, headers headers){
+	err := c.Publish(qn + ".response", rrk, false, true, amqp.Publishing{
+		CorrelationId: cid,
+		Body: body,
+		Headers: headers,
+	})
+	if err != nil {
+		strBody, _ := json.Marshal(string(body))
+		fmt.Fprintln(os.Stderr, "Cannot publish the message " + string(strBody) + " to AMQP: " + err.Error())
+	}
 }
 
 func messageProcess(msg amqp.Delivery, c *amqp.Channel, queueName string, cb func(interface{}) (interface{}, error)) {
@@ -53,48 +72,23 @@ func messageProcess(msg amqp.Delivery, c *amqp.Channel, queueName string, cb fun
 	err := json.Unmarshal(msg.Body, &value)
 	if err != nil {
 		if needAnswer {
-			c.Publish(queueName + ".response", responseRoutingKey, false, true, amqp.Publishing{
-				CorrelationId: msg.CorrelationId,
-				Body: []byte(err.Error()),
-				Headers: amqp.Table{
-					"code": -1,
-					"name": "ERR_UNKNOWN",
-				},
-			})
+			publish(c, queueName, responseRoutingKey, msg.CorrelationId, []byte(err.Error()), baseError)
 		}
 		return
 	}
 	res, cbErr := cb(value)
 	if needAnswer {
 		if cbErr != nil {
-			c.Publish(queueName + ".response", responseRoutingKey, false, true, amqp.Publishing{
-				CorrelationId: msg.CorrelationId,
-				Body: []byte(cbErr.Error()),
-				Headers: amqp.Table{
-					"code": -1,
-					"name": "ERR_UNKNOWN",
-				},
-			})
+			publish(c, queueName, responseRoutingKey, msg.CorrelationId, []byte(cbErr.Error()), baseError)
 			return
 		}
 		strRes, marshalErr := json.Marshal(res)
 		if marshalErr != nil {
-			c.Publish(queueName + ".response", responseRoutingKey, false, true, amqp.Publishing{
-				CorrelationId: msg.CorrelationId,
-				Body: []byte(marshalErr.Error()),
-				Headers: amqp.Table{
-					"code": -1,
-					"name": "ERR_UNKNOWN",
-				},
-			})
+			publish(c, queueName, responseRoutingKey, msg.CorrelationId, []byte(marshalErr.Error()), baseError)
 			return
 		}
-		c.Publish(queueName + ".response", responseRoutingKey, false, true, amqp.Publishing{
-			CorrelationId: msg.CorrelationId,
-			Body: strRes,
-			Headers: amqp.Table{
-				"code": 0,
-			},
+		publish(c, queueName, responseRoutingKey, msg.CorrelationId, strRes, headers{
+			"code": 0,
 		})
 	}
 }
