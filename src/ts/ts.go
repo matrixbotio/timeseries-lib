@@ -123,3 +123,51 @@ func (ts *TS) Write(db, table string, records []*WriteRecord) error {
 	}
 	return nil
 }
+
+// DescribeTSTable - describe timeseries db table
+func (ts *TS) DescribeTSTable(dbName, tableName string) error {
+	_, err := ts.w.DescribeTable(&timestreamwrite.DescribeTableInput{
+		DatabaseName: aws.String(dbName),
+		TableName:    aws.String(tableName),
+	})
+	if err == nil {
+		return nil
+	}
+	// check error
+	_, isTableNotExists := err.(*timestreamwrite.ResourceNotFoundException)
+	if !isTableNotExists {
+		return errors.New("failed to describe tsdb table: " + err.Error())
+	}
+	// Create table if table doesn't exist
+	_, err = ts.w.CreateTable(&timestreamwrite.CreateTableInput{
+		DatabaseName: aws.String(dbName),
+		TableName:    aws.String(tableName),
+	})
+	if err != nil {
+		return errors.New("Error while creating table:" + err.Error())
+	}
+	return nil
+}
+
+// DescribeTSDB - describe timeseries db
+func (ts *TS) DescribeTSDB(dbName string) error {
+	_, err := ts.w.DescribeDatabase(&timestreamwrite.DescribeDatabaseInput{
+		DatabaseName: aws.String(dbName),
+	})
+	if err == nil {
+		return nil
+	}
+	// check error
+	_, isDBNotExists := err.(*timestreamwrite.ResourceNotFoundException)
+	if !isDBNotExists {
+		return errors.New("failed to describe tsdb: " + err.Error())
+	}
+	// Create database if database doesn't exist
+	_, err = ts.w.CreateDatabase(&timestreamwrite.CreateDatabaseInput{
+		DatabaseName: aws.String(dbName),
+	})
+	if err != nil {
+		return errors.New("failed to create tsdb: " + err.Error())
+	}
+	return nil
+}
