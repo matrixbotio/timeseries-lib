@@ -148,3 +148,26 @@ func (ts *TS) DescribeTSTable(dbName, tableName string) error {
 	}
 	return nil
 }
+
+// DescribeTSDB - describe timeseries db
+func (ts *TS) DescribeTSDB(dbName string) error {
+	_, err := ts.w.DescribeDatabase(&timestreamwrite.DescribeDatabaseInput{
+		DatabaseName: aws.String(dbName),
+	})
+	if err == nil {
+		return nil
+	}
+	// check error
+	_, isDBNotExists := err.(*timestreamwrite.ResourceNotFoundException)
+	if !isDBNotExists {
+		return errors.New("failed to describe tsdb: " + err.Error())
+	}
+	// Create database if database doesn't exist
+	_, err = ts.w.CreateDatabase(&timestreamwrite.CreateDatabaseInput{
+		DatabaseName: aws.String(dbName),
+	})
+	if err != nil {
+		return errors.New("failed to create tsdb: " + err.Error())
+	}
+	return nil
+}
