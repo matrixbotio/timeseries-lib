@@ -41,6 +41,22 @@ func launchListener() {
 				return nil, errors.New("Cannot get write records")
 			}
 			return nil, ts.Write(db, table, records)
+		} else if reqType == "describe_db" {
+			db, dbOk := dataTyped["db"].(string)
+			if !dbOk {
+				return nil, errors.New("Cannot get the db to describe")
+			}
+			return nil, ts.DescribeTSDB(db)
+		} else if reqType == "describe_table" {
+			db, dbOk := dataTyped["db"].(string)
+			if !dbOk {
+				return nil, errors.New("Cannot get the db to describe")
+			}
+			table, tableOk := dataTyped["table"].(string)
+			if !tableOk {
+				return nil, errors.New("Cannot get the table to describe")
+			}
+			return nil, ts.DescribeTSTable(db, table)
 		} else {
 			return nil, errors.New("Unknown request type " + reqType)
 		}
