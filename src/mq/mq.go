@@ -3,15 +3,18 @@ package mq
 import (
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"os"
 	"strconv"
 	"time"
 
-	constants "github.com/matrixbotio/constants-lib"
+	"_/src/logger"
+
+	"github.com/matrixbotio/constants-lib"
 	"github.com/streadway/amqp"
 )
+
+var log = logger.Logger
 
 type MQ struct {
 	conn *amqp.Connection
@@ -57,11 +60,12 @@ func publish(c *amqp.Channel, qn, rrk, cid string, body []byte, headers headers)
 	})
 	if err != nil {
 		strBody, _ := json.Marshal(string(body))
-		fmt.Fprintln(os.Stderr, "Cannot publish the message " + string(strBody) + " to AMQP: " + err.Error())
+		log.Warn("Cannot publish the message " + string(strBody) + " to AMQP: " + err.Error())
 	}
 }
 
 func publishErr(c *amqp.Channel, qn, rrk, cid string, err *constants.APIError){
+	log.Warn(err)
 	headers := headers {
 		"code": err.Code,
 		"name": err.Name,
@@ -100,19 +104,19 @@ func messageProcess(msg amqp.Delivery, c *amqp.Channel, queueName string, cb fun
 func (mq *MQ) createChannel(i int, cb func(interface{}) (interface{}, error)) {
 	c, err := mq.conn.Channel()
 	for err != nil {
-		fmt.Println("Warning: cannot create RMQ channel " + strconv.Itoa(i) + ". Retry in 3s")
+		log.Warn("Cannot create RMQ channel " + strconv.Itoa(i) + ". Retry in 3s")
 		time.Sleep(time.Second * 3)
 		c, err = mq.conn.Channel()
 	}
 	queue, declErr := c.QueueDeclare("timeseries", true, false, false, false, nil)
 	if declErr != nil {
-		fmt.Println("Warning: cannot declare the queue: " + declErr.Error() + ". Closing channel " + strconv.Itoa(i))
+		log.Warn("Cannot declare the queue: " + declErr.Error() + ". Closing channel " + strconv.Itoa(i))
 		c.Close()
 		return
 	}
 	msgChan, consumeErr := c.Consume(queue.Name, "", true, false, true, false, nil)
 	if consumeErr != nil {
-		fmt.Println("Warning: cannot consume from queue: " + consumeErr.Error() + ". Closing channel " + strconv.Itoa(i))
+		log.Warn("Cannot consume from queue: " + consumeErr.Error() + ". Closing channel " + strconv.Itoa(i))
 		c.Close()
 		return
 	}
