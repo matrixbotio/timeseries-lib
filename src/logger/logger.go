@@ -1,11 +1,12 @@
 package logger
 
 import (
+	"log"
 	"os"
 	"strings"
 
-	"github.com/matrixbotio/constants-lib"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/matrixbotio/constants-lib"
 )
 
 type LogDevice struct {
@@ -13,11 +14,14 @@ type LogDevice struct {
 }
 
 func (l *LogDevice) Send(data string){
-	l.es.Index(
+	_, err := l.es.Index(
 		"logs",
 		strings.NewReader(data),
 		l.es.Index.WithRefresh("true"),
 	)
+	if err != nil {
+		log.Println("Cannot write to ES: " + err.Error())
+	}
 }
 
 func getHostname() string {
