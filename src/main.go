@@ -1,18 +1,27 @@
 package main
 
 import (
+	"_/src/helpers"
+	"_/src/logger"
 	messagequeue "_/src/mq"
 	timeseries "_/src/ts"
-	"_/src/helpers"
+	"encoding/json"
 	"errors"
 	"os"
 	"strconv"
 )
 
+var log = logger.Logger
+
 func launchListener() {
 	ts := timeseries.New()
 	mq := messagequeue.New()
 	mq.Listen(func(data interface{}) (interface{}, error) {
+		jsondata, err := json.Marshal(data)
+		if err != nil {
+			jsondata = []byte("<cannot marshal data to JSON>")
+		}
+		log.Verbose("Got new data: " + string(jsondata))
 		dataTyped, ok := data.(map[string]interface{})
 		if !ok {
 			return nil, errors.New("Cannot convert incoming data to map")
@@ -75,6 +84,7 @@ func main() {
 	for i := 0; i < count; i++ {
 		go launchListener()
 	}
+	log.Log("Started successfully with " + strconv.Itoa(count) + " listeners")
 	forever := make(chan bool)
 	// Background work
 	<-forever
