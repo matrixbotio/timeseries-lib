@@ -53,6 +53,7 @@ func mqConnect() *amqp.Connection {
 }
 
 func publish(c *amqp.Channel, qn, rrk, cid string, body []byte, headers headers){
+	log.Verbose("publishing data to queue " + qn + ".response:\n" + string(body))
 	err := c.Publish(qn + ".response", rrk, false, true, amqp.Publishing{
 		CorrelationId: cid,
 		Body: body,
@@ -98,6 +99,16 @@ func messageProcess(msg amqp.Delivery, c *amqp.Channel, queueName string, cb fun
 		publish(c, queueName, responseRoutingKey, msg.CorrelationId, strRes, headers{
 			"code": 0,
 		})
+	} else {
+		log.Verbose(
+			"Answer not needed. Data: {\"msg.CorrelationId\":\"" +
+			msg.CorrelationId +
+			"\",\"responseRoutingKey\":\"" +
+			responseRoutingKey +
+			"\",\"rrkOk\":" +
+			strconv.FormatBool(rrkOk) +
+			"}",
+		)
 	}
 }
 
