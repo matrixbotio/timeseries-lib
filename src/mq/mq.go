@@ -82,6 +82,8 @@ func messageProcess(msg amqp.Delivery, c *amqp.Channel, queueName string, cb fun
 	if err != nil {
 		if needAnswer {
 			publishErr(c, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_PARSE_ERR"))
+		} else {
+			log.Warn("Failed to unmarshal JSON and answer isn't needed. Body is:\n" + string(msg.Body))
 		}
 		return
 	}
