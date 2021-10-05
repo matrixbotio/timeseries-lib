@@ -129,7 +129,7 @@ func (mq *MQ) createChannel(i int, cb func(interface{}) (interface{}, error)) {
 		time.Sleep(time.Second * 3)
 		c, err = mq.conn.Channel()
 	}
-	queue, declErr := c.QueueDeclare("timeseries.test", true, false, false, false, nil)
+	queue, declErr := c.QueueDeclare("timeseries", true, false, false, false, nil)
 	if declErr != nil {
 		log.Warn("Cannot declare the queue: " + declErr.Error() + ". Closing channel " + strconv.Itoa(i))
 		c.Close()
