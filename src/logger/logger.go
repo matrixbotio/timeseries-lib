@@ -13,7 +13,10 @@ type LogDevice struct {
 	es *elasticsearch.Client
 }
 
-func (l *LogDevice) Send(data string){
+func (l *LogDevice) Send(data string) {
+	if l.es == nil {
+		return
+	}
 	_, err := l.es.Index(
 		"logs",
 		strings.NewReader(data),
@@ -33,9 +36,13 @@ func getHostname() string {
 }
 
 func createESClient() *elasticsearch.Client {
+	host := os.Getenv("ES_HOST")
+	if host == "" {
+		return nil
+	}
 	client, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: []string{
-			os.Getenv("ES_PROTO") + "://" + os.Getenv("ES_HOST") + ":" + os.Getenv("ES_PORT"),
+			os.Getenv("ES_PROTO") + "://" + host + ":" + os.Getenv("ES_PORT"),
 		},
 	})
 	if err != nil {
