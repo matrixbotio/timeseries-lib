@@ -25,10 +25,15 @@ type headers = amqp.Table
 func mqConnect() *amqp.Connection {
 	var conn *amqp.Connection
 	var err error
-	var useTLS bool = true
+	var useTLS = true
+	var skipTlsVerify = false
 
 	if os.Getenv("AMQP_TLS") == "0" {
 		useTLS = false
+	}
+
+	if os.Getenv("AMQP_SKIP_TLS_VERIFY") == "true" {
+		skipTlsVerify = true
 	}
 
 	dsn := "amqp"
@@ -40,7 +45,7 @@ func mqConnect() *amqp.Connection {
 		os.Getenv("AMQP_PORT") + "/"
 
 	if useTLS {
-		conn, err = amqp.DialTLS(dsn, &tls.Config{MinVersion: tls.VersionTLS12})
+		conn, err = amqp.DialTLS(dsn, &tls.Config{MinVersion: tls.VersionTLS12, InsecureSkipVerify: skipTlsVerify})
 	} else {
 		conn, err = amqp.Dial(dsn)
 	}
@@ -52,11 +57,12 @@ func mqConnect() *amqp.Connection {
 	return conn
 }
 
-func publish(c *amqp.Channel, qn, rrk, cid string, body []byte, headers headers){
-	err := c.Publish(qn + ".response", rrk, false, true, amqp.Publishing{
+func publish(c *amqp.Channel, queueName, responseRoutingKey, cid string, body []byte, headers headers) {
+	log.Verbose("publishing data to queue " + queueName + ".response" + " and responseRoutingKey " + responseRoutingKey + ":\n" + string(body))
+	err := c.Publish(queueName+".response", responseRoutingKey, false, false, amqp.Publishing{
 		CorrelationId: cid,
-		Body: body,
-		Headers: headers,
+		Body:          body,
+		Headers:       headers,
 	})
 	if err != nil {
 		strBody, _ := json.Marshal(string(body))
@@ -64,40 +70,55 @@ func publish(c *amqp.Channel, qn, rrk, cid string, body []byte, headers headers)
 	}
 }
 
-func publishErr(c *amqp.Channel, qn, rrk, cid string, err *constants.APIError){
+func publishErr(c *amqp.Channel, qn, rrk, cid string, err *constants.APIError) {
 	log.Warn(err)
-	headers := headers {
+	headers := headers{
 		"code": err.Code,
 		"name": err.Name,
 	}
 	publish(c, qn, rrk, cid, []byte(err.Message), headers)
 }
 
-func messageProcess(msg amqp.Delivery, c *amqp.Channel, queueName string, cb func(interface{}) (interface{}, error)) {
+func messageProcess(msg amqp.Delivery, channel *amqp.Channel, queueName string, callBack func(interface{}) (interface{}, error)) {
 	responseRoutingKey, rrkOk := msg.Headers["responseRoutingKey"].(string)
 	needAnswer := msg.CorrelationId != "" && rrkOk && responseRoutingKey != ""
 	var value interface{}
 	err := json.Unmarshal(msg.Body, &value)
 	if err != nil {
 		if needAnswer {
-			publishErr(c, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_PARSE_ERR"))
+			publishErr(channel, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_PARSE_ERR"))
+		} else {
+			log.Warn("Failed to unmarshal JSON and answer isn't needed. Body is:\n" + string(msg.Body))
 		}
 		return
 	}
-	res, cbErr := cb(value)
+	res, cbErr := callBack(value)
 	if needAnswer {
 		if cbErr != nil {
-			publishErr(c, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_HANDLE_ERR", cbErr.Error()))
+			publishErr(channel, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_HANDLE_ERR", cbErr.Error()))
 			return
 		}
-		strRes, marshalErr := json.Marshal(res)
+		if res == nil {
+			res = "OK"
+		}
+		bytesRes, marshalErr := json.Marshal(res)
 		if marshalErr != nil {
-			publishErr(c, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_ENCODE_ERR"))
+			publishErr(channel, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_ENCODE_ERR"))
 			return
 		}
-		publish(c, queueName, responseRoutingKey, msg.CorrelationId, strRes, headers{
+		publish(channel, queueName, responseRoutingKey, msg.CorrelationId, bytesRes, headers{
 			"code": 0,
 		})
+	} else {
+		log.Verbose(
+			"Answer not needed. Data: {\"msg.CorrelationId\":\"" +
+				msg.CorrelationId +
+				"\",\"responseRoutingKey\":\"" +
+				responseRoutingKey +
+				"\",\"rrkOk\":" +
+				strconv.FormatBool(rrkOk) +
+				"}",
+		)
 	}
 }
 
