@@ -38,9 +38,10 @@ func launchListener() {
 			if !queryOk {
 				return nil, errors.New("Cannot get request query")
 			}
+			nextToken := dataTyped["nextToken"].(string)
 			log.Verbose("Start query request")
 			start := time.Now()
-			r, err := ts.Query(query)
+			r, err := ts.Query(query, nextToken)
 			log.Verbose(fmt.Sprintf("Finish query request in %s", time.Since(start)))
 			return r, err
 		} else if reqType == "write" {

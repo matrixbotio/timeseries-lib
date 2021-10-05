@@ -64,14 +64,15 @@ func New() *TS {
 }
 
 // Query - select ts data
-func (ts *TS) Query(query string) (interface{}, error) {
+func (ts *TS) Query(query string, nextToken string) (interface{}, error) {
 	tsResult, err := ts.q.Query(&timestreamquery.QueryInput{
 		QueryString: &query,
+		NextToken:   &nextToken,
 	})
 	if err != nil {
 		return nil, errors.New("failed to exec ts query: " + err.Error())
 	}
-	return tsResult.Rows, nil
+	return tsResult, nil
 }
 
 // WriteRecord - TS Record data container
