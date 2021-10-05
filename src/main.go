@@ -7,8 +7,10 @@ import (
 	timeseries "_/src/ts"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 var log = logger.Logger
@@ -30,12 +32,17 @@ func launchListener() {
 		if !typeOk {
 			return nil, errors.New("Cannot get request type")
 		}
+		log.Verbose("Got request of type " + reqType)
 		if reqType == "query" {
 			query, queryOk := dataTyped["data"].(string)
 			if !queryOk {
 				return nil, errors.New("Cannot get request query")
 			}
-			return ts.Query(query)
+			log.Verbose("Start query request")
+			start := time.Now()
+			r, err := ts.Query(query)
+			log.Verbose(fmt.Sprintf("Finish query request in %s", time.Since(start)))
+			return r, err
 		} else if reqType == "write" {
 			db, dbOk := dataTyped["db"].(string)
 			if !dbOk {
@@ -49,13 +56,21 @@ func launchListener() {
 			if !recordsOk {
 				return nil, errors.New("Cannot get write records")
 			}
-			return nil, ts.Write(db, table, records)
+			log.Verbose("Start write request")
+			start := time.Now()
+			err := ts.Write(db, table, records)
+			log.Verbose(fmt.Sprintf("Finish write request in %s", time.Since(start)))
+			return nil, err
 		} else if reqType == "describe_db" {
 			db, dbOk := dataTyped["db"].(string)
 			if !dbOk {
 				return nil, errors.New("Cannot get the db to describe")
 			}
-			return nil, ts.DescribeTSDB(db)
+			log.Verbose("Start describe_db request")
+			start := time.Now()
+			err := ts.DescribeTSDB(db)
+			log.Verbose(fmt.Sprintf("Finish describe_db request in %s", time.Since(start)))
+			return nil, err
 		} else if reqType == "describe_table" {
 			db, dbOk := dataTyped["db"].(string)
 			if !dbOk {
@@ -65,7 +80,11 @@ func launchListener() {
 			if !tableOk {
 				return nil, errors.New("Cannot get the table to describe")
 			}
-			return nil, ts.DescribeTSTable(db, table)
+			log.Verbose("Start describe_table request")
+			start := time.Now()
+			err := ts.DescribeTSTable(db, table)
+			log.Verbose(fmt.Sprintf("Finish describe_table request in %s", time.Since(start)))
+			return nil, err
 		} else {
 			return nil, errors.New("Unknown request type " + reqType)
 		}
