@@ -65,10 +65,13 @@ func New() *TS {
 
 // Query - select ts data
 func (ts *TS) Query(query string, nextToken string) (interface{}, error) {
-	tsResult, err := ts.q.Query(&timestreamquery.QueryInput{
+	queryInput := &timestreamquery.QueryInput{
 		QueryString: &query,
-		NextToken:   &nextToken,
-	})
+	}
+	if nextToken != nil {
+		queryInput.NextToken = &nextToken
+	}
+	tsResult, err := ts.q.Query(queryInput)
 	if err != nil {
 		return nil, errors.New("failed to exec ts query: " + err.Error())
 	}
