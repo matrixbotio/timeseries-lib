@@ -38,7 +38,12 @@ func launchListener() {
 			if !queryOk {
 				return nil, errors.New("Cannot get request query")
 			}
-			nextToken := dataTyped["nextToken"].(string)
+			var nextToken *string
+			if dataTyped["nextToken"] != nil {
+				nextToken = dataTyped["nextToken"].(*string)
+			} else {
+				nextToken = nil
+			}
 			log.Verbose("Start query request")
 			start := time.Now()
 			r, err := ts.Query(query, nextToken)
