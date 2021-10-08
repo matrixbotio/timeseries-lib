@@ -59,7 +59,6 @@ func New() *TS {
 
 // Query - select ts data
 func (ts *TS) Query(query string, nextToken *string) (*QueryOutput, error) {
-	var tsResult interface{}
 	tsResult, err := ts.q.Query(&timestreamquery.QueryInput{
 		QueryString: &query,
 		NextToken:   nextToken,
@@ -67,8 +66,7 @@ func (ts *TS) Query(query string, nextToken *string) (*QueryOutput, error) {
 	if err != nil {
 		return nil, errors.New("failed to exec ts query: " + err.Error())
 	}
-	result := tsResult.(QueryOutput)
-	return &result, nil
+	return ConvertQueryOutput(tsResult), nil
 }
 
 // Write ts records
@@ -153,4 +151,13 @@ func (ts *TS) DescribeTSDB(dbName string) error {
 		return errors.New("failed to create tsdb: " + err.Error())
 	}
 	return nil
+}
+
+func ConvertQueryOutput(queryOutput *timestreamquery.QueryOutput) *QueryOutput {
+	if queryOutput == nil {
+		return nil
+	}
+	var outputInterface interface{} = *queryOutput
+	var result = outputInterface.(QueryOutput)
+	return &result
 }
