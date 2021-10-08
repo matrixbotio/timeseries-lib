@@ -15,12 +15,6 @@ import (
 	"golang.org/x/net/http2"
 )
 
-// TS - TS handler struct
-type TS struct {
-	q *timestreamquery.TimestreamQuery
-	w *timestreamwrite.TimestreamWrite
-}
-
 func createTSSession() (*timestreamquery.TimestreamQuery, *timestreamwrite.TimestreamWrite) {
 	tr := &http.Transport{
 		ResponseHeaderTimeout: 20 * time.Second,
@@ -64,7 +58,8 @@ func New() *TS {
 }
 
 // Query - select ts data
-func (ts *TS) Query(query string, nextToken *string) (interface{}, error) {
+func (ts *TS) Query(query string, nextToken *string) (*QueryOutput, error) {
+	var tsResult interface{}
 	tsResult, err := ts.q.Query(&timestreamquery.QueryInput{
 		QueryString: &query,
 		NextToken:   nextToken,
@@ -72,24 +67,8 @@ func (ts *TS) Query(query string, nextToken *string) (interface{}, error) {
 	if err != nil {
 		return nil, errors.New("failed to exec ts query: " + err.Error())
 	}
-	return tsResult, nil
-}
-
-// WriteRecord - TS Record data container
-type WriteRecord struct {
-	Dimensions       []RecordDimension `json:"dimensions"`
-	MeasureName      string            `json:"measureName"`
-	MeasureValue     string            `json:"measureValue"`
-	MeasureValueType string            `json:"measureType"` // example: "DOUBLE"
-	Time             string            `json:"time"`
-	TimeUnit         string            `json:"timeUnit"` // example: "MILLISECONDS"
-	Version          int64             `json:"version"`
-}
-
-// RecordDimension - ts record dimension
-type RecordDimension struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	result := tsResult.(QueryOutput)
+	return &result, nil
 }
 
 // Write ts records

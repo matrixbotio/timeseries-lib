@@ -2,13 +2,7 @@ package helpers
 
 import (
 	"_/src/ts"
-	"encoding/json"
-	"regexp"
-	"unicode"
-	"unicode/utf8"
 )
-
-var keyMatchRegex = regexp.MustCompile(`"(\w+)":`)
 
 func fromMapStr(mapObj map[string]interface{}, prop string, dest *string) bool {
 	val, ok := mapObj[prop].(string)
@@ -74,25 +68,4 @@ func ConvertRecords(unconverted interface{}) ([]*ts.WriteRecord, bool) {
 		converted[i] = convertedValue
 	}
 	return converted, true
-}
-
-func MarshalJsonChangeCase(value interface{}) ([]byte, error) {
-	marshalled, err := json.Marshal(value)
-
-	converted := keyMatchRegex.ReplaceAllFunc(
-		marshalled,
-		func(match []byte) []byte {
-			// Empty keys are valid JSON, only lowercase if we do not have an
-			// empty key.
-			if len(match) > 2 {
-				// Decode first rune after the double quotes
-				r, width := utf8.DecodeRune(match[1:])
-				r = unicode.ToLower(r)
-				utf8.EncodeRune(match[1:width+1], r)
-			}
-			return match
-		},
-	)
-
-	return converted, err
 }

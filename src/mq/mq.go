@@ -1,7 +1,6 @@
 package mq
 
 import (
-	"_/src/helpers"
 	"crypto/tls"
 	"encoding/json"
 	"net/url"
@@ -102,7 +101,7 @@ func messageProcess(msg amqp.Delivery, channel *amqp.Channel, queueName string, 
 		if res == nil {
 			res = "OK"
 		}
-		bytesRes, marshalErr := helpers.MarshalJsonChangeCase(res)
+		bytesRes, marshalErr := json.Marshal(res)
 		if marshalErr != nil {
 			publishErr(channel, queueName, responseRoutingKey, msg.CorrelationId, constants.Error("DATA_ENCODE_ERR"))
 			return
