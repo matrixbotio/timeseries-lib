@@ -1,6 +1,8 @@
 package ts
 
 import (
+	"_/src/helpers"
+	"_/src/structs"
 	"errors"
 	"net"
 	"net/http"
@@ -14,6 +16,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"golang.org/x/net/http2"
 )
+
+// TS - TS handler struct
+type TS struct {
+	q *timestreamquery.TimestreamQuery
+	w *timestreamwrite.TimestreamWrite
+}
 
 func createTSSession() (*timestreamquery.TimestreamQuery, *timestreamwrite.TimestreamWrite) {
 	tr := &http.Transport{
@@ -58,7 +66,7 @@ func New() *TS {
 }
 
 // Query - select ts data
-func (ts *TS) Query(query string, nextToken *string) (*QueryOutput, error) {
+func (ts *TS) Query(query string, nextToken *string) (*structs.QueryOutput, error) {
 	tsResult, err := ts.q.Query(&timestreamquery.QueryInput{
 		QueryString: &query,
 		NextToken:   nextToken,
@@ -66,11 +74,11 @@ func (ts *TS) Query(query string, nextToken *string) (*QueryOutput, error) {
 	if err != nil {
 		return nil, errors.New("failed to exec ts query: " + err.Error())
 	}
-	return ConvertQueryOutput(tsResult), nil
+	return helpers.ConvertQueryOutput(tsResult), nil
 }
 
 // Write ts records
-func (ts *TS) Write(db, table string, records []*WriteRecord) error {
+func (ts *TS) Write(db, table string, records []*structs.WriteRecord) error {
 	recordsSlice := make([]*timestreamwrite.Record, 0)
 	for _, writeRecord := range records {
 		// create record
@@ -151,13 +159,4 @@ func (ts *TS) DescribeTSDB(dbName string) error {
 		return errors.New("failed to create tsdb: " + err.Error())
 	}
 	return nil
-}
-
-func ConvertQueryOutput(queryOutput *timestreamquery.QueryOutput) *QueryOutput {
-	if queryOutput == nil {
-		return nil
-	}
-	var outputInterface interface{} = *queryOutput
-	var result = outputInterface.(QueryOutput)
-	return &result
 }
