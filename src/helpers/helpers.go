@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"_/src/structs"
-	"github.com/aws/aws-sdk-go/service/timestreamquery"
 )
 
 func fromMapStr(mapObj map[string]interface{}, prop string, dest *string) bool {
@@ -69,30 +68,4 @@ func ConvertRecords(unconverted interface{}) ([]*structs.WriteRecord, bool) {
 		converted[i] = convertedValue
 	}
 	return converted, true
-}
-
-func ConvertQueryOutput(queryOutput *timestreamquery.QueryOutput) *structs.QueryOutput {
-	var columnInfo []*structs.ColumnInfo
-	for i := range queryOutput.ColumnInfo {
-		tsColumnInfo := queryOutput.ColumnInfo[i]
-		columnInfo = append(columnInfo, &structs.ColumnInfo{
-			Name: tsColumnInfo.Name,
-			Type: tsColumnInfo.Type.ScalarType,
-		})
-	}
-	var rows []*structs.Row
-	for i := range queryOutput.Rows {
-		tsRow := queryOutput.Rows[i]
-		var data []*string
-		for j := range tsRow.Data {
-			tsRowData := tsRow.Data[j]
-			data = append(data, tsRowData.ScalarValue)
-		}
-		rows = append(rows, &structs.Row{Data: data})
-	}
-	return &structs.QueryOutput{
-		ColumnInfo: columnInfo,
-		NextToken:  queryOutput.NextToken,
-		Rows:       rows,
-	}
 }

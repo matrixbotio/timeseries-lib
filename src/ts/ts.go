@@ -1,7 +1,6 @@
 package ts
 
 import (
-	"_/src/helpers"
 	"_/src/structs"
 	"errors"
 	"net"
@@ -74,7 +73,7 @@ func (ts *TS) Query(query string, nextToken *string) (*structs.QueryOutput, erro
 	if err != nil {
 		return nil, errors.New("failed to exec ts query: " + err.Error())
 	}
-	return helpers.ConvertQueryOutput(tsResult), nil
+	return convertQueryOutput(tsResult), nil
 }
 
 // Write ts records
@@ -159,4 +158,30 @@ func (ts *TS) DescribeTSDB(dbName string) error {
 		return errors.New("failed to create tsdb: " + err.Error())
 	}
 	return nil
+}
+
+func convertQueryOutput(queryOutput *timestreamquery.QueryOutput) *structs.QueryOutput {
+	var columnInfo []*structs.ColumnInfo
+	for i := range queryOutput.ColumnInfo {
+		tsColumnInfo := queryOutput.ColumnInfo[i]
+		columnInfo = append(columnInfo, &structs.ColumnInfo{
+			Name: tsColumnInfo.Name,
+			Type: tsColumnInfo.Type.ScalarType,
+		})
+	}
+	var rows []*structs.Row
+	for i := range queryOutput.Rows {
+		tsRow := queryOutput.Rows[i]
+		var data []*string
+		for j := range tsRow.Data {
+			tsRowData := tsRow.Data[j]
+			data = append(data, tsRowData.ScalarValue)
+		}
+		rows = append(rows, &structs.Row{Data: data})
+	}
+	return &structs.QueryOutput{
+		ColumnInfo: columnInfo,
+		NextToken:  queryOutput.NextToken,
+		Rows:       rows,
+	}
 }

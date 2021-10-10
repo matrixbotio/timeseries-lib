@@ -1,4 +1,4 @@
-package helpers
+package ts
 
 import (
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
@@ -32,7 +32,7 @@ func TestConvertQueryOutput(t *testing.T) {
 	}
 
 	// when
-	result := ConvertQueryOutput(&queryOutput)
+	result := convertQueryOutput(&queryOutput)
 
 	// then
 	if result == nil {
