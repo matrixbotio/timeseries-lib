@@ -129,7 +129,9 @@ func (mq *MQ) createChannel(i int, cb func(interface{}) (interface{}, error)) {
 		time.Sleep(time.Second * 3)
 		c, err = mq.conn.Channel()
 	}
-	queue, declErr := c.QueueDeclare("timeseries", true, false, false, false, nil)
+	args := amqp.Table{}
+	args["x-max-length"] = 1000
+	queue, declErr := c.QueueDeclare("timeseries", true, false, false, false, args)
 	if declErr != nil {
 		log.Warn("Cannot declare the queue: " + declErr.Error() + ". Closing channel " + strconv.Itoa(i))
 		c.Close()
