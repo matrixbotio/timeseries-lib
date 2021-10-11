@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"_/src/ts"
+	"_/src/structs"
 )
 
 func fromMapStr(mapObj map[string]interface{}, prop string, dest *string) bool {
@@ -22,12 +22,12 @@ func fromMapInt64(mapObj map[string]interface{}, prop string, dest *int64) bool 
 	return true
 }
 
-func ConvertRecords(unconverted interface{}) ([]*ts.WriteRecord, bool) {
+func ConvertRecords(unconverted interface{}) ([]*structs.WriteRecord, bool) {
 	ifaceArr, ok := unconverted.([]interface{})
 	if !ok {
 		return nil, false
 	}
-	converted := make([]*ts.WriteRecord, len(ifaceArr))
+	converted := make([]*structs.WriteRecord, len(ifaceArr))
 	for i, v := range ifaceArr {
 		convertedMap, ok := v.(map[string]interface{})
 		if !ok {
@@ -37,28 +37,28 @@ func ConvertRecords(unconverted interface{}) ([]*ts.WriteRecord, bool) {
 		if !isDimensionsOk {
 			return nil, false
 		}
-		dimensions := make([]ts.RecordDimension, len(dimensionsArr))
+		dimensions := make([]structs.RecordDimension, len(dimensionsArr))
 		for i, dimIface := range dimensionsArr {
 			dimMap, ok := dimIface.(map[string]interface{})
 			if !ok {
 				return nil, false
 			}
-			dimensions[i] = ts.RecordDimension{}
+			dimensions[i] = structs.RecordDimension{}
 			success := fromMapStr(dimMap, "name", &dimensions[i].Name) && fromMapStr(dimMap, "value", &dimensions[i].Value)
 			if !success {
 				return nil, false
 			}
 		}
-		convertedValue := &ts.WriteRecord{
+		convertedValue := &structs.WriteRecord{
 			Dimensions: dimensions,
 		}
 		success := fromMapInt64(convertedMap, "version", &convertedValue.Version)
 		for name, remapTo := range map[string]*string{
-			"measureName": &convertedValue.MeasureName,
+			"measureName":  &convertedValue.MeasureName,
 			"measureValue": &convertedValue.MeasureValue,
-			"measureType": &convertedValue.MeasureValueType,
-			"time": &convertedValue.Time,
-			"timeUnit": &convertedValue.TimeUnit,
+			"measureType":  &convertedValue.MeasureValueType,
+			"time":         &convertedValue.Time,
+			"timeUnit":     &convertedValue.TimeUnit,
 		} {
 			success = success && fromMapStr(convertedMap, name, remapTo)
 		}

@@ -1,6 +1,7 @@
 package ts
 
 import (
+	"_/src/structs"
 	"errors"
 	"net"
 	"net/http"
@@ -64,7 +65,7 @@ func New() *TS {
 }
 
 // Query - select ts data
-func (ts *TS) Query(query string, nextToken *string) (interface{}, error) {
+func (ts *TS) Query(query string, nextToken *string) (*structs.QueryOutput, error) {
 	tsResult, err := ts.q.Query(&timestreamquery.QueryInput{
 		QueryString: &query,
 		NextToken:   nextToken,
@@ -72,28 +73,11 @@ func (ts *TS) Query(query string, nextToken *string) (interface{}, error) {
 	if err != nil {
 		return nil, errors.New("failed to exec ts query: " + err.Error())
 	}
-	return tsResult, nil
-}
-
-// WriteRecord - TS Record data container
-type WriteRecord struct {
-	Dimensions       []RecordDimension `json:"dimensions"`
-	MeasureName      string            `json:"measureName"`
-	MeasureValue     string            `json:"measureValue"`
-	MeasureValueType string            `json:"measureType"` // example: "DOUBLE"
-	Time             string            `json:"time"`
-	TimeUnit         string            `json:"timeUnit"` // example: "MILLISECONDS"
-	Version          int64             `json:"version"`
-}
-
-// RecordDimension - ts record dimension
-type RecordDimension struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	return convertQueryOutput(tsResult), nil
 }
 
 // Write ts records
-func (ts *TS) Write(db, table string, records []*WriteRecord) error {
+func (ts *TS) Write(db, table string, records []*structs.WriteRecord) error {
 	recordsSlice := make([]*timestreamwrite.Record, 0)
 	for _, writeRecord := range records {
 		// create record
@@ -174,4 +158,30 @@ func (ts *TS) DescribeTSDB(dbName string) error {
 		return errors.New("failed to create tsdb: " + err.Error())
 	}
 	return nil
+}
+
+func convertQueryOutput(queryOutput *timestreamquery.QueryOutput) *structs.QueryOutput {
+	var columnInfo []*structs.ColumnInfo
+	for i := range queryOutput.ColumnInfo {
+		tsColumnInfo := queryOutput.ColumnInfo[i]
+		columnInfo = append(columnInfo, &structs.ColumnInfo{
+			Name: tsColumnInfo.Name,
+			Type: tsColumnInfo.Type.ScalarType,
+		})
+	}
+	var rows []*structs.Row
+	for i := range queryOutput.Rows {
+		tsRow := queryOutput.Rows[i]
+		var data []*string
+		for j := range tsRow.Data {
+			tsRowData := tsRow.Data[j]
+			data = append(data, tsRowData.ScalarValue)
+		}
+		rows = append(rows, &structs.Row{Data: data})
+	}
+	return &structs.QueryOutput{
+		ColumnInfo: columnInfo,
+		NextToken:  queryOutput.NextToken,
+		Rows:       rows,
+	}
 }

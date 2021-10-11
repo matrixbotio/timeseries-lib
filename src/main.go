@@ -40,7 +40,8 @@ func launchListener() {
 			}
 			var nextToken *string
 			if dataTyped["nextToken"] != nil {
-				nextToken = dataTyped["nextToken"].(*string)
+				nt := dataTyped["nextToken"].(string)
+				nextToken = &nt
 			} else {
 				nextToken = nil
 			}
