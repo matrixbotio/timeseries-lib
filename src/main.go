@@ -59,13 +59,13 @@ func launchListener() {
 			if !tableOk {
 				return nil, errors.New("Cannot get write table")
 			}
-			records, recordsOk := helpers.ConvertRecords(dataTyped["records"])
-			if !recordsOk {
-				return nil, errors.New("Cannot get write records")
+			records, err := helpers.ConvertRecords(dataTyped["records"])
+			if err != nil {
+				return nil, errors.New("Cannot get write records: " + err.Error())
 			}
 			log.Verbose("Start write request")
 			start := time.Now()
-			err := ts.Write(db, table, records)
+			err = ts.Write(db, table, records)
 			log.Verbose(fmt.Sprintf("Finish write request in %s", time.Since(start)))
 			return nil, err
 		} else if reqType == "describe_db" {
