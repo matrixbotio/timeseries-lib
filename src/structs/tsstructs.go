@@ -27,7 +27,7 @@ type WriteRecord struct {
 	MeasureValueType string            `json:"measureType"` // example: "DOUBLE"
 	Time             string            `json:"time"`
 	TimeUnit         string            `json:"timeUnit"` // example: "MILLISECONDS"
-	Version          int64             `json:"version"`
+	Version          float64           `json:"version"`
 }
 
 // RecordDimension - ts record dimension

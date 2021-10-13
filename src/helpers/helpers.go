@@ -6,8 +6,8 @@ import (
 	"strconv"
 )
 
-func fromMapInt64(mapObj map[string]interface{}, prop string, dest *int64) bool {
-	val, ok := mapObj[prop].(int64)
+func fromMapFloat64(mapObj map[string]interface{}, prop string, dest *float64) bool {
+	val, ok := mapObj[prop].(float64)
 	if !ok {
 		return false
 	}
@@ -51,21 +51,22 @@ func convertRow(row interface{}) (*structs.WriteRecord, error) {
 	convertedValue := &structs.WriteRecord{
 		Dimensions: convertedDimensions,
 	}
-	success := fromMapInt64(convertedMap, "version", &convertedValue.Version)
+	success := fromMapFloat64(convertedMap, "version", &convertedValue.Version)
 	if !success {
 		return nil, errors.New("Cannot get version")
 	}
-	for name, remapTo := range map[string]string{
-		"measureName":  convertedValue.MeasureName,
-		"measureValue": convertedValue.MeasureValue,
-		"measureType":  convertedValue.MeasureValueType,
-		"time":         convertedValue.Time,
-		"timeUnit":     convertedValue.TimeUnit,
+	for name, remapTo := range map[string]*string{
+		"measureName":  &convertedValue.MeasureName,
+		"measureValue": &convertedValue.MeasureValue,
+		"measureType":  &convertedValue.MeasureValueType,
+		"time":         &convertedValue.Time,
+		"timeUnit":     &convertedValue.TimeUnit,
 	} {
-		remapTo, success = convertedMap[name].(string)
+		val, success := convertedMap[name].(string)
 		if !success {
-			return nil, errors.New("Cannot convert " + name + " with value " + remapTo)
+			return nil, errors.New("Cannot convert " + name + " with value " + *remapTo)
 		}
+		*remapTo = val
 	}
 	return convertedValue, nil
 }
