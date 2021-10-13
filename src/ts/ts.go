@@ -88,7 +88,7 @@ func (ts *TS) Write(db, table string, records []*structs.WriteRecord) error {
 			MeasureValueType: aws.String(writeRecord.MeasureValueType),
 			Time:             aws.String(writeRecord.Time),
 			TimeUnit:         aws.String(writeRecord.TimeUnit),
-			Version:          aws.Int64(writeRecord.Version),
+			Version:          aws.Int64(int64(writeRecord.Version)),
 		}
 		// add dimensions
 		for _, dimension := range writeRecord.Dimensions {
