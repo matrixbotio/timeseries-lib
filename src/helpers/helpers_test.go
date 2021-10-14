@@ -62,8 +62,4 @@ func TestConvertRow(t *testing.T) {
 		t.Errorf("Dimenstions parsed incorrectly: " + fmt.Sprintf("%#v", writeRecord.Dimensions))
 		return
 	}
-	if writeRecord.Dimensions[0].Name != "exchange" {
-		t.Errorf("")
-		return
-	}
 }

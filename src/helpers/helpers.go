@@ -3,6 +3,7 @@ package helpers
 import (
 	"_/src/structs"
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -53,7 +54,8 @@ func convertRow(row interface{}) (*structs.WriteRecord, error) {
 	}
 	success := fromMapFloat64(convertedMap, "version", &convertedValue.Version)
 	if !success {
-		return nil, errors.New("Cannot get version")
+		return nil, errors.New("Cannot get version from value: " + fmt.Sprintf("%#v", convertedMap["version"]) +
+			" and type: " + fmt.Sprintf("%T", convertedMap["version"]))
 	}
 	for name, remapTo := range map[string]*string{
 		"measureName":  &convertedValue.MeasureName,
