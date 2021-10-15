@@ -1,8 +1,10 @@
 package ts
 
 import (
+	"_/src/logger"
 	"_/src/structs"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -15,6 +17,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"golang.org/x/net/http2"
 )
+
+var log = logger.Logger
 
 // TS - TS handler struct
 type TS struct {
@@ -88,7 +92,7 @@ func (ts *TS) Write(db, table string, records []*structs.WriteRecord) error {
 			MeasureValueType: aws.String(writeRecord.MeasureValueType),
 			Time:             aws.String(writeRecord.Time),
 			TimeUnit:         aws.String(writeRecord.TimeUnit),
-			Version:          aws.Int64(writeRecord.Version),
+			Version:          aws.Int64(int64(writeRecord.Version)),
 		}
 		// add dimensions
 		for _, dimension := range writeRecord.Dimensions {
@@ -101,12 +105,14 @@ func (ts *TS) Write(db, table string, records []*structs.WriteRecord) error {
 		recordsSlice = append(recordsSlice, record)
 	}
 
-	_, err := ts.w.WriteRecords(&timestreamwrite.WriteRecordsInput{
+	writeRecordsInput := &timestreamwrite.WriteRecordsInput{
 		DatabaseName: &db,
 		TableName:    &table,
 		Records:      recordsSlice,
-	})
+	}
+	_, err := ts.w.WriteRecords(writeRecordsInput)
 	if err != nil {
+		log.Verbose("Failed write records: " + fmt.Sprintf("%#v", writeRecordsInput))
 		return errors.New("failed to write ts records: " + err.Error())
 	}
 	return nil
