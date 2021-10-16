@@ -82,34 +82,7 @@ func (ts *TS) Query(query string, nextToken *string) (*structs.QueryOutput, erro
 
 // Write ts records
 func (ts *TS) Write(db, table string, records []*structs.WriteRecord) error {
-	recordsSlice := make([]*timestreamwrite.Record, 0)
-	for _, writeRecord := range records {
-		// create record
-		record := &timestreamwrite.Record{
-			Dimensions:       make([]*timestreamwrite.Dimension, len(writeRecord.Dimensions)),
-			MeasureName:      aws.String(writeRecord.MeasureName),
-			MeasureValue:     aws.String(writeRecord.MeasureValue),
-			MeasureValueType: aws.String(writeRecord.MeasureValueType),
-			Time:             aws.String(writeRecord.Time),
-			TimeUnit:         aws.String(writeRecord.TimeUnit),
-			Version:          aws.Int64(int64(writeRecord.Version)),
-		}
-		// add dimensions
-		for _, dimension := range writeRecord.Dimensions {
-			record.Dimensions = append(record.Dimensions, &timestreamwrite.Dimension{
-				Name:  &dimension.Name,
-				Value: &dimension.Value,
-			})
-		}
-		// append values to recordsSlice
-		recordsSlice = append(recordsSlice, record)
-	}
-
-	writeRecordsInput := &timestreamwrite.WriteRecordsInput{
-		DatabaseName: &db,
-		TableName:    &table,
-		Records:      recordsSlice,
-	}
+	writeRecordsInput := convertWriteRecordsInput(db, table, records)
 	_, err := ts.w.WriteRecords(writeRecordsInput)
 	if err != nil {
 		log.Verbose("Failed write records: " + fmt.Sprintf("%#v", writeRecordsInput))
@@ -189,5 +162,40 @@ func convertQueryOutput(queryOutput *timestreamquery.QueryOutput) *structs.Query
 		ColumnInfo: columnInfo,
 		NextToken:  queryOutput.NextToken,
 		Rows:       rows,
+	}
+}
+
+func convertWriteRecordsInput(db string, table string, records []*structs.WriteRecord) *timestreamwrite.WriteRecordsInput {
+	recordsSlice := make([]*timestreamwrite.Record, 0)
+	for _, writeRecord := range records {
+		// create record
+		record := &timestreamwrite.Record{
+			Dimensions:       make([]*timestreamwrite.Dimension, 0),
+			MeasureName:      aws.String(writeRecord.MeasureName),
+			MeasureValue:     aws.String(writeRecord.MeasureValue),
+			MeasureValueType: aws.String(writeRecord.MeasureValueType),
+			Time:             aws.String(writeRecord.Time),
+			TimeUnit:         aws.String(writeRecord.TimeUnit),
+			Version:          aws.Int64(int64(writeRecord.Version)),
+		}
+		// add dimensions
+		dimensionValueType := "VARCHAR"
+		for _, dimension := range writeRecord.Dimensions {
+			name := dimension.Name
+			value := dimension.Value
+			record.Dimensions = append(record.Dimensions, &timestreamwrite.Dimension{
+				Name:               &name,
+				Value:              &value,
+				DimensionValueType: &dimensionValueType,
+			})
+		}
+		// append values to recordsSlice
+		recordsSlice = append(recordsSlice, record)
+	}
+
+	return &timestreamwrite.WriteRecordsInput{
+		DatabaseName: &db,
+		TableName:    &table,
+		Records:      recordsSlice,
 	}
 }
