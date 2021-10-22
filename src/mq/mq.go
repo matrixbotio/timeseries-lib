@@ -19,7 +19,7 @@ type RMQ struct {
 
 var log = logger.Logger
 
-const defaultQueueName = "timestream"
+const defaultQueueName = "timeseries"
 const defaultChannelCount = 10
 
 func New(messageHandler func(workerDeliveryHandler rmqworker.RMQDeliveryHandler) (interface{}, error)) (*RMQ, rmqworker.APIError) {
