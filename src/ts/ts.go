@@ -85,7 +85,7 @@ func (ts *TS) Write(db, table string, records []*structs.WriteRecord) error {
 	writeRecordsInput := convertWriteRecordsInput(db, table, records)
 	_, err := ts.w.WriteRecords(writeRecordsInput)
 	if err != nil {
-		log.Verbose("Failed write records: " + fmt.Sprintf("%#v", writeRecordsInput))
+		log.Verbose("Failed to write records: " + err.Error() + "\n" + fmt.Sprintf("%#v", writeRecordsInput))
 		return errors.New("failed to write ts records: " + err.Error())
 	}
 	return nil

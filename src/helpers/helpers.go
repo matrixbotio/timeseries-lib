@@ -4,6 +4,7 @@ import (
 	"_/src/structs"
 	"errors"
 	"fmt"
+	"github.com/matrixbotio/constants-lib"
 	"strconv"
 )
 
@@ -90,3 +91,5 @@ func convertDimension(dimension interface{}) (*structs.RecordDimension, error) {
 	}
 	return &convertedDimension, nil
 }
+
+type ApiError *constants.APIError
