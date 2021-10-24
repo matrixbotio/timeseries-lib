@@ -3,6 +3,7 @@ package mq
 import (
 	"_/src/helpers"
 	"_/src/logger"
+	"fmt"
 	"github.com/Sagleft/rmqworker-lib"
 	"github.com/matrixbotio/constants-lib"
 	"net/url"
@@ -51,6 +52,8 @@ func New(messageHandler func(workerDeliveryHandler rmqworker.RMQDeliveryHandler)
 		resErr := rmqHandler.SendRMQResponse(&task, apiError)
 		if resErr != nil {
 			log.Error("Exception sending response: " + resErr.Message)
+		} else {
+			log.Verbose("Successfully sent response: " + fmt.Sprintf("%#v", task))
 		}
 	}
 	rmq.initWorkers(callback)
