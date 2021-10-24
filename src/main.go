@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Sagleft/rmqworker-lib"
+	"github.com/matrixbotio/rmqworker-lib"
 	"strconv"
 	"time"
 )
