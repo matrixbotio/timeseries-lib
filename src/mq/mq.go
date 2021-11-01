@@ -3,7 +3,6 @@ package mq
 import (
 	"_/src/helpers"
 	"_/src/logger"
-	"fmt"
 	"github.com/matrixbotio/constants-lib"
 	"github.com/matrixbotio/rmqworker-lib"
 	"net/url"
@@ -53,7 +52,7 @@ func New(messageHandler func(workerDeliveryHandler rmqworker.RMQDeliveryHandler)
 		if resErr != nil {
 			log.Error("Exception sending response: " + resErr.Message)
 		} else {
-			log.Verbose("Successfully sent response: " + fmt.Sprintf("%#v", task))
+			log.Verbose("Successfully sent response")
 		}
 	}
 	rmq.initWorkers(callback)
@@ -108,6 +107,7 @@ func (rmq *RMQ) initWorkers(cb rmqworker.RMQDeliveryCallback) helpers.ApiError {
 			return helpers.ApiError(err)
 		}
 		rmqWorker.Subscribe()
+		rmqWorker.SetAutoAck(false)
 		go rmqWorker.Listen()
 		rmq.Workers = append(rmq.Workers, rmqWorker)
 	}

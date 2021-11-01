@@ -32,7 +32,7 @@ func main() {
 }
 
 func handleMessage(handler rmqworker.RMQDeliveryHandler, ts *timeseries.TS) (interface{}, error) {
-	log.Verbose("Got new data: " + string(handler.GetMessageBody()))
+	log.Verbose("Received new request")
 	var data interface{}
 	err := json.Unmarshal(handler.GetMessageBody(), &data)
 	if err != nil {

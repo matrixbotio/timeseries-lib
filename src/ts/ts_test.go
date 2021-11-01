@@ -95,7 +95,6 @@ func TestConvertWriteRecordsInput(t *testing.T) {
 
 	// then
 	t.Log("resultWriteRecords: ", resultWriteRecords)
-	log.Verbose(resultWriteRecords)
 	if resultWriteRecords == nil {
 		t.Error("Result writeRecords is nil")
 	}
