@@ -48,6 +48,7 @@ func New(messageHandler func(workerDeliveryHandler rmqworker.RMQDeliveryHandler)
 			CorrelationID:      workerDeliveryHandler.GetCorrelationID(),
 			MessageBody:        response,
 		}
+		workerDeliveryHandler.Accept()
 		resErr := rmqHandler.SendRMQResponse(&task, apiError)
 		if resErr != nil {
 			log.Error("Exception sending response: " + resErr.Message)
