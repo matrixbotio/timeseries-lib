@@ -3,8 +3,8 @@ package mq
 import (
 	"_/src/helpers"
 	"_/src/logger"
-	"github.com/Sagleft/rmqworker-lib"
 	"github.com/matrixbotio/constants-lib"
+	"github.com/matrixbotio/rmqworker-lib"
 	"net/url"
 	"os"
 	"strconv"
@@ -20,7 +20,7 @@ type RMQ struct {
 var log = logger.Logger
 
 const defaultQueueName = "timeseries"
-const defaultChannelCount = 10
+const defaultChannelCount = 1
 
 func New(messageHandler func(workerDeliveryHandler rmqworker.RMQDeliveryHandler) (interface{}, error)) (*RMQ, rmqworker.APIError) {
 	rmqHandler, err := connect()
@@ -34,6 +34,8 @@ func New(messageHandler func(workerDeliveryHandler rmqworker.RMQDeliveryHandler)
 		var apiError helpers.ApiError
 		if err != nil {
 			apiError = constants.Error("BASE_INTERNAL_ERROR", err.Error())
+		} else if response == nil {
+			response = "OK"
 		}
 		responseRoutingKey, getRrkErr := workerDeliveryHandler.GetResponseRoutingKeyHeader()
 		if getRrkErr != nil {
@@ -41,12 +43,18 @@ func New(messageHandler func(workerDeliveryHandler rmqworker.RMQDeliveryHandler)
 			return
 		}
 		task := rmqworker.RMQPublishResponseTask{
-			ExchangeName:       defaultQueueName + ".response",
+			ExchangeName:       rmq.queueName + ".response",
 			ResponseRoutingKey: responseRoutingKey,
 			CorrelationID:      workerDeliveryHandler.GetCorrelationID(),
 			MessageBody:        response,
 		}
-		rmqHandler.SendRMQResponse(&task, apiError)
+		workerDeliveryHandler.Accept()
+		resErr := rmqHandler.SendRMQResponse(&task, apiError)
+		if resErr != nil {
+			log.Error("Exception sending response: " + resErr.Message)
+		} else {
+			log.Verbose("Successfully sent response")
+		}
 	}
 	rmq.initWorkers(callback)
 	return &rmq, nil
@@ -66,7 +74,7 @@ func connect() (*rmqworker.RMQHandler, rmqworker.APIError) {
 }
 
 func (rmq *RMQ) initQueues() rmqworker.APIError {
-	rmq.queueName = os.Getenv("AMPQ_QUEUE_NAME")
+	rmq.queueName = os.Getenv("AMQP_QUEUE_NAME")
 	if rmq.queueName == "" {
 		rmq.queueName = defaultQueueName
 	}
@@ -100,6 +108,7 @@ func (rmq *RMQ) initWorkers(cb rmqworker.RMQDeliveryCallback) helpers.ApiError {
 			return helpers.ApiError(err)
 		}
 		rmqWorker.Subscribe()
+		rmqWorker.SetAutoAck(false)
 		go rmqWorker.Listen()
 		rmq.Workers = append(rmq.Workers, rmqWorker)
 	}
