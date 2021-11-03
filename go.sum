@@ -1,5 +1,3 @@
-github.com/Sagleft/rmqworker-lib v1.13.2 h1:tmtED29m+UU9AlDaAuhdCLhrN6UiMxjtvYYeBEpo3VA=
-github.com/Sagleft/rmqworker-lib v1.13.2/go.mod h1:gcpE7/ueaTbjtqbrfRq/u8+q2O987rTPvtUOBNBK9a0=
 github.com/aws/aws-sdk-go v1.40.16 h1:Tgg7i9ee2j6ir2EfejPDJBB3PyfUM4dPlvmMLtvJVfo=
 github.com/aws/aws-sdk-go v1.40.16/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
@@ -14,11 +12,12 @@ github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9Y
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
-github.com/matrixbotio/constants-lib v1.0.58/go.mod h1:ol7WN7tisKCBoLOObf9/8vmnv3cBZC9oFL4Jv59YnwQ=
 github.com/matrixbotio/constants-lib v1.0.60 h1:qfVKJx22k6DvpbGQb9tPoeoEOttKgCxVteMt2LXpQnY=
 github.com/matrixbotio/constants-lib v1.0.60/go.mod h1:ol7WN7tisKCBoLOObf9/8vmnv3cBZC9oFL4Jv59YnwQ=
-github.com/matrixbotio/rmqworker-lib v1.15.9 h1:U8UyAJouUmzQPcsooxjTeyUB4R9gp14JyYnqLMFgVpQ=
-github.com/matrixbotio/rmqworker-lib v1.15.9/go.mod h1:rXUW5VqKSYsXNY1PvQ0IqfIZlpxFcwYoGDZ5fZp+IrI=
+github.com/matrixbotio/rmqworker-lib v1.16.5 h1:PUX/CbcqIsmIz9ehsp+09Fvo8UqDdlUxR5wBfWL8ILI=
+github.com/matrixbotio/rmqworker-lib v1.16.5/go.mod h1:rXUW5VqKSYsXNY1PvQ0IqfIZlpxFcwYoGDZ5fZp+IrI=
+github.com/matrixbotio/rmqworker-lib v1.16.7 h1:EB/6oLKdtPhuJ+WAH0SeqIykEoTr5oTCDda0UsP2iC0=
+github.com/matrixbotio/rmqworker-lib v1.16.7/go.mod h1:rXUW5VqKSYsXNY1PvQ0IqfIZlpxFcwYoGDZ5fZp+IrI=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
