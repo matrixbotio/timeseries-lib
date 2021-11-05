@@ -13,6 +13,9 @@ type LogDevice struct {
 	es *elasticsearch.Client
 }
 
+var Logger = constants.NewLogger(&LogDevice{createESClient()}, getHostname(), "Timeseries worker",
+	os.Getenv("LOG_LEVEL"))
+
 func (l *LogDevice) Send(data string) {
 	if l.es == nil {
 		return
@@ -50,5 +53,3 @@ func createESClient() *elasticsearch.Client {
 	}
 	return client
 }
-
-var Logger = constants.NewLogger(&LogDevice{createESClient()}, getHostname(), "Timeseries worker")

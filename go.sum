@@ -12,8 +12,9 @@ github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9Y
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1 h1:shLQSRRSCCPj3f2gpwzGwWFoC7ycTf1rcQZHOlsJ6N8=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
-github.com/matrixbotio/constants-lib v1.0.60 h1:qfVKJx22k6DvpbGQb9tPoeoEOttKgCxVteMt2LXpQnY=
 github.com/matrixbotio/constants-lib v1.0.60/go.mod h1:ol7WN7tisKCBoLOObf9/8vmnv3cBZC9oFL4Jv59YnwQ=
+github.com/matrixbotio/constants-lib v1.1.0 h1:diovzBmCD2ukh8izWLqvIb8y4b/W4PwbzC65+pKi2Ns=
+github.com/matrixbotio/constants-lib v1.1.0/go.mod h1:ol7WN7tisKCBoLOObf9/8vmnv3cBZC9oFL4Jv59YnwQ=
 github.com/matrixbotio/rmqworker-lib v1.16.5 h1:PUX/CbcqIsmIz9ehsp+09Fvo8UqDdlUxR5wBfWL8ILI=
 github.com/matrixbotio/rmqworker-lib v1.16.5/go.mod h1:rXUW5VqKSYsXNY1PvQ0IqfIZlpxFcwYoGDZ5fZp+IrI=
 github.com/matrixbotio/rmqworker-lib v1.16.7 h1:EB/6oLKdtPhuJ+WAH0SeqIykEoTr5oTCDda0UsP2iC0=
