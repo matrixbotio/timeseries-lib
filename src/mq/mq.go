@@ -34,13 +34,13 @@ func New(messageHandler func(workerDeliveryHandler rmqworker.RMQDeliveryHandler)
 		var apiError helpers.ApiError
 		if err != nil {
 			apiError = constants.Error("BASE_INTERNAL_ERROR", err.Error())
+			log.Error("Error when handling message: " + err.Error())
 		} else if response == nil {
 			response = "OK"
 		}
 		responseRoutingKey, getRrkErr := workerDeliveryHandler.GetResponseRoutingKeyHeader()
 		if getRrkErr != nil {
 			log.Verbose(getRrkErr)
-			return
 		}
 		task := rmqworker.RMQPublishResponseTask{
 			ExchangeName:       rmq.queueName + ".response",
@@ -48,7 +48,10 @@ func New(messageHandler func(workerDeliveryHandler rmqworker.RMQDeliveryHandler)
 			CorrelationID:      workerDeliveryHandler.GetCorrelationID(),
 			MessageBody:        response,
 		}
-		workerDeliveryHandler.Accept()
+		acceptError := workerDeliveryHandler.Accept()
+		if acceptError != nil {
+			log.Error("Exception acknowledging RMQ message: " + acceptError.Message)
+		}
 		resErr := rmqHandler.SendRMQResponse(&task, apiError)
 		if resErr != nil {
 			log.Error("Exception sending response: " + resErr.Message)
