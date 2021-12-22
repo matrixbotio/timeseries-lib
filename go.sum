@@ -19,6 +19,8 @@ github.com/matrixbotio/rmqworker-lib v1.16.5 h1:PUX/CbcqIsmIz9ehsp+09Fvo8UqDdlUx
 github.com/matrixbotio/rmqworker-lib v1.16.5/go.mod h1:rXUW5VqKSYsXNY1PvQ0IqfIZlpxFcwYoGDZ5fZp+IrI=
 github.com/matrixbotio/rmqworker-lib v1.16.7 h1:EB/6oLKdtPhuJ+WAH0SeqIykEoTr5oTCDda0UsP2iC0=
 github.com/matrixbotio/rmqworker-lib v1.16.7/go.mod h1:rXUW5VqKSYsXNY1PvQ0IqfIZlpxFcwYoGDZ5fZp+IrI=
+github.com/matrixbotio/rmqworker-lib v1.20.4 h1:uT1ntE8n0mvTminMtTC04bNRrvY7S56cp1/F0FH7Y+c=
+github.com/matrixbotio/rmqworker-lib v1.20.4/go.mod h1:EPrUs+n05ERHyXFMng4e+uOeekFTQ0M7y1rl3+UvJig=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
@@ -27,6 +29,8 @@ github.com/sagleft/simple-cron v1.0.5 h1:YMOb7cQFh3eL4l6amkUAPUwhyPPocHgLaRwGQLt
 github.com/sagleft/simple-cron v1.0.5/go.mod h1:a++6/wI1ZzgYe+lCAKlWBwR8xBYpPl1oXJpa5rUHlJI=
 github.com/sagleft/simple-cron v1.1.2 h1:0RHFaN8VLXVfds5k3ubvFpAgSja8E+l+dIhdOp8S8yA=
 github.com/sagleft/simple-cron v1.1.2/go.mod h1:a++6/wI1ZzgYe+lCAKlWBwR8xBYpPl1oXJpa5rUHlJI=
+github.com/sagleft/simple-cron v1.2.0 h1:Sw8Lq+JtWBW8LXhmGzRfO8yG3C7W3nM5Xd/NKWJwasc=
+github.com/sagleft/simple-cron v1.2.0/go.mod h1:a++6/wI1ZzgYe+lCAKlWBwR8xBYpPl1oXJpa5rUHlJI=
 github.com/streadway/amqp v1.0.0 h1:kuuDrUJFZL1QYL9hUNuCxNObNzB0bV/ZG5jV3RWAQgo=
 github.com/streadway/amqp v1.0.0/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=
