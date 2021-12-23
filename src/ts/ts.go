@@ -140,29 +140,37 @@ func (ts *TS) DescribeTSDB(dbName string) error {
 }
 
 func convertQueryOutput(queryOutput *timestreamquery.QueryOutput) *structs.QueryOutput {
-	var columnInfo []*structs.ColumnInfo
+	var columnInfos []structs.ColumnInfo
 	for i := range queryOutput.ColumnInfo {
 		tsColumnInfo := queryOutput.ColumnInfo[i]
-		columnInfo = append(columnInfo, &structs.ColumnInfo{
-			Name: tsColumnInfo.Name,
-			Type: tsColumnInfo.Type.ScalarType,
-		})
+		columnInfo := structs.ColumnInfo{}
+		if tsColumnInfo.Name != nil {
+			columnInfo.Name = *tsColumnInfo.Name
+		}
+		if tsColumnInfo.Type.ScalarType != nil {
+			columnInfo.Type = *tsColumnInfo.Type.ScalarType
+		}
 	}
-	var rows []*structs.Row
+	var rows []structs.Row
 	for i := range queryOutput.Rows {
 		tsRow := queryOutput.Rows[i]
-		var data []*string
+		var data []string
 		for j := range tsRow.Data {
 			tsRowData := tsRow.Data[j]
-			data = append(data, tsRowData.ScalarValue)
+			if tsRowData.ScalarValue != nil {
+				data = append(data, *tsRowData.ScalarValue)
+			}
 		}
-		rows = append(rows, &structs.Row{Data: data})
+		rows = append(rows, structs.Row{Data: data})
 	}
-	return &structs.QueryOutput{
-		ColumnInfo: columnInfo,
-		NextToken:  queryOutput.NextToken,
+	result := &structs.QueryOutput{
+		ColumnInfo: columnInfos,
 		Rows:       rows,
 	}
+	if queryOutput.NextToken != nil {
+		result.NextToken = *queryOutput.NextToken
+	}
+	return result
 }
 
 func convertWriteRecordsInput(db string, table string, records []*structs.WriteRecord) *timestreamwrite.WriteRecordsInput {
