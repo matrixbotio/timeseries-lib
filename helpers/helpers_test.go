@@ -1,7 +1,7 @@
-package ts
+package helpers
 
 import (
-	"_/src/structs"
+	"_/structs"
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"testing"
 )
@@ -33,7 +33,7 @@ func TestConvertQueryOutput(t *testing.T) {
 	}
 
 	// when
-	result := convertQueryOutput(&queryOutput)
+	result := ConvertQueryOutput(&queryOutput)
 
 	// then
 	if result == nil {
@@ -91,7 +91,7 @@ func TestConvertWriteRecordsInput(t *testing.T) {
 	records = append(records, writeRecord)
 
 	// when
-	resultWriteRecords := convertWriteRecordsInput(db, table, records)
+	resultWriteRecords := ConvertWriteRecordsInput(db, table, records)
 
 	// then
 	t.Log("resultWriteRecords: ", resultWriteRecords)
