@@ -20,15 +20,5 @@ jobs:
       - name: Get dependencies
         run: go get -v -t -d ./...
 
-      - name: Build
-        run: |
-          mkdir bin
-          cd src
-          go build -v -o ../bin/app
-          cd -
-
       - name: Test
-        run: |
-          cd src
-          go test -v ./...
-          cd -
+        run: go test -v ./...
