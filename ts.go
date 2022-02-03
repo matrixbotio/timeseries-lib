@@ -1,11 +1,11 @@
 package timeseries
 
 import (
-	"_/helpers"
-	"_/structs"
 	"errors"
 	"fmt"
 	"github.com/matrixbotio/constants-lib"
+	"github.com/matrixbotio/timeseries-lib/helpers"
+	"github.com/matrixbotio/timeseries-lib/structs"
 	"net"
 	"net/http"
 	"os"

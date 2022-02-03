@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"_/structs"
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
+	"github.com/matrixbotio/timeseries-lib/structs"
 	"testing"
 )
 
