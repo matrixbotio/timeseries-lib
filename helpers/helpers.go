@@ -1,11 +1,11 @@
 package helpers
 
 import (
-	"_/structs"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/matrixbotio/constants-lib"
+	"github.com/matrixbotio/timeseries-lib/structs"
 )
 
 type ApiError *constants.APIError
