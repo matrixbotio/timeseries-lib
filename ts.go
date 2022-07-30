@@ -3,13 +3,15 @@ package timeseries
 import (
 	"errors"
 	"fmt"
-	"github.com/matrixbotio/constants-lib"
-	"github.com/matrixbotio/timeseries-lib/helpers"
-	"github.com/matrixbotio/timeseries-lib/structs"
 	"net"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/matrixbotio/constants-lib"
+	"github.com/matrixbotio/go-common-lib/logger"
+	"github.com/matrixbotio/timeseries-lib/helpers"
+	"github.com/matrixbotio/timeseries-lib/structs"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -19,7 +21,7 @@ import (
 	"golang.org/x/net/http2"
 )
 
-var log *constants.Logger
+var log *logger.Logger
 
 // TS - TS handler struct
 type TS struct {
@@ -28,7 +30,7 @@ type TS struct {
 }
 
 // New - create new TS handler
-func New(logger *constants.Logger, createWriteClient bool, createQueryClient bool) (*TS, helpers.ApiError) {
+func New(logger *logger.Logger, createWriteClient bool, createQueryClient bool) (*TS, helpers.ApiError) {
 	if !createWriteClient && !createQueryClient {
 		return &TS{}, constants.Error(helpers.BaseInternalError, "No ts clients were selected for creation")
 	}
